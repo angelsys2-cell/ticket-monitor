@@ -2,7 +2,7 @@ name: 인터파크 취소표 모니터
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # 10분마다 자동 실행
+    - cron: "*/5 * * * *"   # 10분마다 자동 실행
   workflow_dispatch:           # 수동 실행 버튼
 
 jobs:
