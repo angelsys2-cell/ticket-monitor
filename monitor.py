@@ -1,3 +1,4 @@
+# 스케줄 재등록용 커밋
 import requests
 import os
 import random
