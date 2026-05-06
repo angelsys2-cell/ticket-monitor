@@ -87,4 +87,60 @@ def main():
     )
     print(f"🔍 [{formatted_date}] 모니터링 시작")
 
-    remain = check_remain
+    remain = check_remain()
+    print(f"  remainSeat: {remain}")
+
+    if remain is None:
+        send_telegram(
+            f"⚠️ API 접근 차단 (403)\n"
+            f"📅 {formatted_date}\n"
+            f"🕐 {now} (KST)\n\n"
+            f"인터파크 서버가 GitHub Actions IP를 차단했습니다.\n"
+            f"잠시 후 자동으로 재시도됩니다."
+        )
+        print("⚠️ 403 차단 - 다음 실행에서 재시도")
+        return
+
+    available = [r for r in remain if r.get("remainCnt", 0) > 0]
+    lru_available = [r for r in available if "1루" in r.get("seatGradeName", "")]
+
+    if available:
+        # 1루 자리 먼저, 나머지 뒤에
+        other_available = [r for r in available if "1루" not in r.get("seatGradeName", "")]
+
+        seats_text = ""
+        if lru_available:
+            seats_text += "[ 1루 ]\n"
+            seats_text += "\n".join(
+                f"  ✅ {r['seatGradeName']} - 잔여 {r['remainCnt']}석"
+                for r in lru_available
+            )
+        if other_available:
+            if seats_text:
+                seats_text += "\n\n"
+            seats_text += "[ 기타 ]\n"
+            seats_text += "\n".join(
+                f"  {r['seatGradeName']} - 잔여 {r['remainCnt']}석"
+                for r in other_available
+            )
+
+        title = "🚨 1루 취소표 발생!" if lru_available else "🚨 취소표 발생! (1루 없음)"
+        send_telegram(
+            f"{title}\n"
+            f"📅 {formatted_date}\n"
+            f"🕐 {now} (KST)\n\n"
+            f"{seats_text}\n\n"
+            f"🔗 {PERF_URL}"
+        )
+        print(f"✅ 취소표 알림 전송! (1루: {len(lru_available)}개)")
+    else:
+        send_telegram(
+            f"😔 취소표 없음 (전 좌석 매진)\n"
+            f"📅 {formatted_date}\n"
+            f"🕐 {now} (KST)"
+        )
+        print("😔 취소표 없음")
+
+
+if __name__ == "__main__":
+    main()
