@@ -101,11 +101,14 @@ def main():
         print("⚠️ 403 차단 - 다음 실행에서 재시도")
         return
 
-    available = [r for r in remain if r.get("remainCnt", 0) > 0]
+    # 잔여석 있고 휠체어석 제외
+    available = [
+        r for r in remain
+        if r.get("remainCnt", 0) > 0 and "휠체어" not in r.get("seatGradeName", "")
+    ]
     lru_available = [r for r in available if "1루" in r.get("seatGradeName", "")]
 
     if available:
-        # 1루 자리 먼저, 나머지 뒤에
         other_available = [r for r in available if "1루" not in r.get("seatGradeName", "")]
 
         seats_text = ""
